@@ -17,9 +17,20 @@ public class AmeliorationLocale {
 	private static List<Restaurant> locations = new ArrayList<Restaurant>();
 	private static Vector<Vector<Restaurant>> solutions = new Vector<Vector<Restaurant>>();
 
+	private static boolean afficher;
+
 	public static void main(String[] args) {
-		//String fileName = args[0];
-		String fileName = "C:/Users/Bambell/Desktop/a2/tp2-algo/bin/WC-100-10-07.txt";
+		// Obtain the arguments (file name and if you must print locations).
+		String fileName = args[0];
+                for (int i = 0; i < args.length; i++) {
+                        if (args[i].equals("-f")) {
+                                i++;
+                                fileName = args[i];
+                        } else if (args[i].equals("-p")) {
+                                afficher = true;
+                        }
+                }
+
 		String line = null;
 		try {
 			BufferedReader bufferedReader = 
@@ -60,6 +71,7 @@ public class AmeliorationLocale {
 		}
 		
 		// The algorithm itself. Iterates 10 times.
+		long startTime = System.nanoTime();
 		for (int solutionIndex = 0; solutionIndex < 10; solutionIndex++) {
 			int currentCapacity = 0;
 			int currentRentability = 0;
@@ -113,17 +125,6 @@ public class AmeliorationLocale {
 			}
 		}
 		
-		// Display best solution.
-		int verifTotalCost = 0;
-		int verifTotalRevenue = 0;
-		System.out.print("Best solution : ");
-		for (Restaurant r : solutions.get(bestSolution)) {
-			System.out.print(r.id + ",");
-			verifTotalCost += r.quantity;
-			verifTotalRevenue += r.revenue;
-		}
-		System.out.println(" Total cost " + verifTotalCost + ", total revenue " + verifTotalRevenue);
-		
 		// Tries to find a better solution by changing one location.
 		Vector<Restaurant> newBestSolution = new Vector<Restaurant>(solutions.get(bestSolution));
 				
@@ -171,17 +172,6 @@ public class AmeliorationLocale {
 			newBestSolution = new Vector<Restaurant>(tmpNewBestSolution);
 			currentTotalCapacity = tmpCurrentTotalCapacity;
 		}
-		
-		// Display best solution.
-		verifTotalCost = 0;
-		verifTotalRevenue = 0;
-		System.out.print("Best solution : ");
-		for (Restaurant r : newBestSolution) {
-			System.out.print(r.id + ",");
-			verifTotalCost += r.quantity;
-			verifTotalRevenue += r.revenue;
-		}
-		System.out.println(" Total cost " + verifTotalCost + ", total revenue " + verifTotalRevenue);
 		
 		// Tries to find a better solution by swapping 2 locations.
 		noNeighbour = false;
@@ -235,16 +225,18 @@ public class AmeliorationLocale {
 			newBestSolution = new Vector<Restaurant>(tmpNewBestSolution);
 		}
 		
+		long endTime = System.nanoTime();
+
+                // Divide by 1000000 for milliseconds.
+                System.out.println((endTime - startTime));
+
 		// Display best solution.
-		verifTotalCost = 0;
-		verifTotalRevenue = 0;
-		System.out.print("Best solution : ");
-		for (Restaurant r : newBestSolution) {
-			System.out.print(r.id + ",");
-			verifTotalCost += r.quantity;
-			verifTotalRevenue += r.revenue;
+		if (afficher) {
+			for (Restaurant r : newBestSolution) {
+				System.out.print(r.id + " ");
+			}
+			System.out.println("");
 		}
-		System.out.println(" Total cost " + verifTotalCost + ", total revenue " + verifTotalRevenue);
 	}
 }
 
