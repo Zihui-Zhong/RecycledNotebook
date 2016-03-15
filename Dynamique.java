@@ -10,9 +10,23 @@ public class Dynamique {
 
     private static Restaurent locations[];
     private static List<int[]> R;
-        
+    private static List<List<List<Restaurent>>> l;
+    private static boolean afficher;
+
     public static void main(String[] args) {
+    
         String fileName = args[0];
+        
+        for(int i =0;i<args.length;i++){
+            if(args[i].equals("-f")){
+                i++;
+               fileName = args[i]; 
+            }else if (args[i].equals("-p")){
+                afficher=true;
+            }
+        }
+
+            
         String line = null;
         try {
             BufferedReader bufferedReader = 
@@ -53,35 +67,72 @@ public class Dynamique {
         for(Restaurent r:locations){
             if(r.cost<minCost)
                 minCost = r.cost;
-            System.out.println(r.id +" " +r.profit +" " + r.cost);
         }       
-        System.out.println("");
 
-        
-        System.out.println(totalCost);
-
+        l = new ArrayList<List<List<Restaurent>>>();
         R = new ArrayList<int[]>();
         for(int i =0;i<locations.length;i++){
+            List<List<Restaurent>> listTemp = new ArrayList<List<Restaurent>>();
+            for(int j =0;j<totalCost;j++){
+                listTemp.add(new ArrayList<Restaurent>());
+            }
+            l.add(listTemp);
             int[] a = new int[totalCost];
             R.add(a);
         }
-        
-        System.out.println(get(locations.length,totalCost));
-        
-        displayR();
+        long startTime = System.nanoTime();
+        get(locations.length,totalCost);             
+        long endTime = System.nanoTime();
 
+        System.out.println((endTime - startTime));//divide by 1000000 to get milliseconds.
+    
+        
+        List<Restaurent> list = l.get(locations.length-1).get(totalCost-1);
+        if(afficher)
+            for(Restaurent r:list){
+                System.out.print(r.id+" ");
+            }
+        System.out.println("");
 
     }
     
     
     public static int get(int i, int j){
-        if(i>0 &&j>0&&R.get(i-1)[j-1]==0){
-            if(j-locations[i-1].profit>=0)
-                R.get(i-1)[j-1] = Math.max(locations[i-1].profit+get(i-1,j-locations[i-1].profit),get(i-1,j));
-            else
-                R.get(i-1)[j-1] = Math.max(0,get(i-1,j));
+        if(i>0 &&j>0){
+            if(R.get(i-1)[j-1]==0)
+            {
+                int withThis= -1;
+                int withoutThis= get(i-1,j);
+                if(j-locations[i-1].cost>=0)
+                {
+                    withThis= locations[i-1].profit+get(i-1,j-locations[i-1].cost);
+                }
+                if(withThis>withoutThis){
+                    R.get(i-1)[j-1] = withThis;
+                    if(i-2>=0&&j-locations[i-1].cost-1>0){
+                        List<Restaurent> list = l.get(i-2).get(j-locations[i-1].cost-1);
+                        for(Restaurent r:list){
+                            (l.get(i-1)).get(j-1).add(r);
+                        }
+                    }
+                    l.get(i-1).get(j-1).add(locations[i-1]);
+                    return withThis;
+                }else{
+                    R.get(i-1)[j-1] = withoutThis;
+                    if(i-2>=0&&j-1>=0){
+                        List<Restaurent> list = l.get(i-2).get(j-1);
+                        for(Restaurent r:list){
+                            (l.get(i-1)).get(j-1).add(r);
+                        }
+                    }
+                    
+
+                    return withoutThis;
+                }
                 
-            return R.get(i-1)[j-1];
+            }else{
+                return R.get(i-1)[j-1];
+            }
         }
         else
             return 0;
