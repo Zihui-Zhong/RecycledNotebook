@@ -21,15 +21,26 @@ public class AmeliorationLocale {
 
 	public static void main(String[] args) {
 		// Obtain the arguments (file name and if you must print locations).
-		String fileName = args[0];
+		String fileName = null;
                 for (int i = 0; i < args.length; i++) {
                         if (args[i].equals("-f")) {
-                                i++;
-                                fileName = args[i];
+				if (args.length > (i + 1)) {
+					i++;
+                                	fileName = args[i];
+				} else {
+					System.out.println("No file was specified with -f.");
+					return;
+				}
                         } else if (args[i].equals("-p")) {
                                 afficher = true;
                         }
                 }
+
+		// File name not specified.
+		if (fileName == null) {
+			System.out.println("No file was specified, please use -f.");
+			return;
+		}
 
 		String line = null;
 		try {
@@ -64,10 +75,12 @@ public class AmeliorationLocale {
 			bufferedReader.close();         
 		}
 		catch(FileNotFoundException ex) {
-			System.out.println("Can't open '" + fileName + "'");                
+			System.out.println("Can't open '" + fileName + "'");
+			return;
 		}
 		catch(IOException ex) {
-			System.out.println("Error reading '" + fileName + "'");                  
+			System.out.println("Error reading '" + fileName + "'");
+			return;
 		}
 		
 		// The algorithm itself. Iterates 10 times.

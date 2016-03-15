@@ -14,18 +14,27 @@ public class Dynamique {
     private static boolean afficher;
 
     public static void main(String[] args) {
-    
-        String fileName = args[0];
-        
-        for(int i =0;i<args.length;i++){
-            if(args[i].equals("-f")){
-                i++;
-               fileName = args[i]; 
-            }else if (args[i].equals("-p")){
-                afficher=true;
-            }
-        }
+        // Obtain the arguments (file name and if you must print locations).
+        String fileName = null;
+                for (int i = 0; i < args.length; i++) {
+                        if (args[i].equals("-f")) {
+                                if (args.length > (i + 1)) {
+                                        i++;
+                                        fileName = args[i];
+                                } else {
+                                        System.out.println("No file was specified with -f.");
+                                        return;
+                                }
+                        } else if (args[i].equals("-p")) {
+                                afficher = true;
+                        }
+                }
 
+	// File name not specified.
+	if (fileName == null) {
+                        System.out.println("No file was specified, please use -f.");
+                        return;
+                }
             
         String line = null;
         try {
@@ -56,12 +65,14 @@ public class Dynamique {
         catch(FileNotFoundException ex) {
             System.out.println(
                 "Can't open '" + 
-                fileName + "'");                
+                fileName + "'");
+	return;
         }
         catch(IOException ex) {
             System.out.println(
                 "Error reading '" 
-                + fileName + "'");                  
+                + fileName + "'");
+	return;                  
         }
         minCost = locations[0].cost;
         for(Restaurent r:locations){
