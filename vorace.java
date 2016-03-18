@@ -127,7 +127,7 @@ public class vorace {
 		long endTime = System.nanoTime();
 
 		// Divide by 1000000 for milliseconds.
-		System.out.println((endTime - startTime)+"\t"+bestRevenue);
+		System.out.println((endTime - startTime));
 
 		// Display best solution.
 		if (afficher) {

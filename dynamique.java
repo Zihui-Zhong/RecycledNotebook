@@ -97,7 +97,7 @@ public class dynamique {
 		long result = dyn(locations.length,totalCost);             
 		long endTime = System.nanoTime();
 
-		System.out.print((endTime - startTime)+"\t"+totalCost+"\t"+result);
+		System.out.print((endTime - startTime));
 
 		if(afficher)
 		{
