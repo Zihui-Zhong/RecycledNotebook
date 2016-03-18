@@ -11,11 +11,13 @@ public class dynamique {
 	private static Restaurent locations[];
 	private static List<int[]> R;
 	private static boolean afficher;
+	private static boolean capacity;
 
 	public static void main(String[] args) {
 		// Obtain the arguments (file name and if you must print locations).
 		String fileName = null;
-		
+		afficher=false;
+		capacity = false;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-f")) {
 				if (args.length > (i + 1)) {
@@ -27,7 +29,10 @@ public class dynamique {
 				}
 			} else if (args[i].equals("-p")) {
 				afficher = true;
+                        } else if (args[i].equals("-c")) {
+				capacity = true;
 			}
+
 		}
 
 		// File name not specified.
@@ -92,7 +97,7 @@ public class dynamique {
 		long result = dyn(locations.length,totalCost);             
 		long endTime = System.nanoTime();
 
-		System.out.print((endTime - startTime)+"\t"+result);
+		System.out.print((endTime - startTime)+"\t"+totalCost+"\t"+result);
 
 		if(afficher)
 		{
