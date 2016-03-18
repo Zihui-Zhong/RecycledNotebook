@@ -36,7 +36,6 @@ public class vorace {
 			}
 		}
 
-
 		// File name not specified.
 		if (fileName == null) {
 			System.out.println("No file was specified, please use -f.");
@@ -93,13 +92,7 @@ public class vorace {
 
 			// Iterates until there is no more locations to add or until the total
 			// capacity has been reached.
-			double maxWeight = 0.0;
-			for (Restaurant r : tmpLocations) {
-				if (r.rentability > maxWeight) {
-					maxWeight = r.rentability;
-				}
-			}
-
+			double maxWeight =updateMax(tmpLocations);
 
 			// Finds which location to choose.
 			int index;
@@ -108,17 +101,19 @@ public class vorace {
 				index = (int)(tmpLocations.size() * Math.random());
 
 				if (Math.random() < tmpLocations.get(index).rentability / maxWeight) {
-
 					// Ensures that adding this location won't bust the total capacity.
-
 					if (currentCapacity + tmpLocations.get(index).quantity <= totalCapacity) {
 						currentCapacity += tmpLocations.get(index).quantity;
 						currentRevenue += tmpLocations.get(index).revenue;
 						solutions.get(solutionIndex).addElement(tmpLocations.get(index));
-						tmpLocations.remove(index);
-					} else {
-						tmpLocations.remove(index);
+					} 
+					double thisWeight =  tmpLocations.get(index).rentability;
+					tmpLocations.set(index, tmpLocations.get(tmpLocations.size()-1));
+					tmpLocations.remove(tmpLocations.size()-1);
+					if(maxWeight ==thisWeight){
+						maxWeight= updateMax(tmpLocations);
 					}
+
 				}
 			}
 
@@ -141,6 +136,17 @@ public class vorace {
 			}
 			System.out.println("");
 		}
+	}
+	
+	public static double updateMax(List<Restaurant> tmpLocations){
+		double maxWeight = 0.0;
+		for (Restaurant r : tmpLocations) {
+			if (r.rentability > maxWeight) {
+				maxWeight = r.rentability;
+			}
+		}
+		return maxWeight;
+
 	}
 }
 
