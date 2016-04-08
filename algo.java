@@ -19,6 +19,8 @@ public class algo {
 	static Stack<BackTrackThread> lookingForWork;
 	static BackTrackThread[] threads;
 	static Semaphore semGiveWork;
+	static Semaphore semWaitEnd;
+
 	static int[] serverRet;
 	
 	
@@ -112,7 +114,7 @@ public class algo {
 		for(int i=0;i<isInGraph.length;i++){
 			isInGraph[i]=-1;
 		}
-		
+		semWaitEnd = new Semaphore(0);
 		lookingForWork= new Stack<BackTrackThread>();
 		semGiveWork = new Semaphore(1);
 		threads = new BackTrackThread[3];
@@ -131,6 +133,14 @@ public class algo {
 			System.out.println("WIN");
 			if(isDone)
 			{
+				isInGraph=serverRet;
+			}else{
+				try{
+				semWaitEnd.acquire();
+				}
+				catch(Exception e){
+					
+				}
 				isInGraph=serverRet;
 			}
 		}
@@ -154,6 +164,9 @@ public class algo {
 			if(parallelBackTrack(isInGraph,1,n))
 				return true;
 			isInGraph[n.id]=-1;
+			if(isDone){
+				break;
+			}
 		}
 		
 		
@@ -204,8 +217,6 @@ public class algo {
 		}
         public void run() {
         	while(!isDone){
-        		if(isInGraph!=null)
-        			isInGraph[109]=312412;
         		if(isWork){
         			boolean ret = parallelBackTrack(isInGraph,pos,n);
         			if(ret){
@@ -213,6 +224,7 @@ public class algo {
 							semGiveWork.acquire();
 	        				isDone=true;
 	        				serverRet=isInGraph;
+	        				semWaitEnd.release();
 							semGiveWork.release();
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
