@@ -94,6 +94,7 @@ public class algo {
 		for(Node n : nodesSorted){
 			n.rank = count;
 			count++;
+			n.links.sort(new linkWeightComparator());
 		}		
 		for(Link l:objLinks)
 			l.updateRank();
@@ -522,7 +523,11 @@ public class algo {
 	}
 	
 	
-
+	static class linkWeightComparator implements Comparator<Integer>{
+		public int compare(Integer a, Integer b) {
+			return nodes.get(a).height < nodes.get(b).height ? -1 : nodes.get(a).height == nodes.get(b).height ? 0 : 1;
+		}
+	}
 
 }
 
