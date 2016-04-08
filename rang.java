@@ -23,25 +23,32 @@ public class rang {
   // Array containing the nodes, sorted by increasing height.
   static ArrayList<Node> nodesSorted;
 
-  // Attay
+  // Array
   static ArrayList<Link> objLinks; 
-  static boolean[][] links;
-  static int debug=0;
-  static int aa=0;
-  static boolean isDone=false;
+
+  // A two-dimensional array, indexed with the noded id, containing an array
+  // of booleans, indexed with the nodes id. True if there is a link between
+  // both nodes.
+
+  static boolean isDone = false;
+
   static Stack<BackTrackThread> lookingForWork;
+
   static BackTrackThread[] threads;
+
   static Semaphore semGiveWork;
+
   static Semaphore semWaitEnd;
 
   static int[] serverRet;
-  static int deepest=0;
+
+  static int deepest = 0;
 
   // Entry point of the program.
   public static void main(String[] args) {
-    // Obtain the arguments (file name and if the heights must be printed).
     String fileName = null;
 
+    // Obtain the arguments (file name and if the heights must be printed).
     for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-f")) {
         if (args.length > (i + 1)) {
@@ -58,36 +65,32 @@ public class rang {
     }
 
     try {
-      // Extract the nodes (students) and links from the file.
       nodes = new ArrayList<Node>();
       objLinks = new ArrayList<Link>();
       nodesSorted = new ArrayList<Node>();
+
+      // Extract the nodes (students) from the file.
       BufferedReader bufferedReader = 
         new BufferedReader(new FileReader(fileName));
       nbNodes = Integer.parseInt(bufferedReader.readLine());
       nbLinks = Integer.parseInt(bufferedReader.readLine());
-      for(int i = 0;i<nbNodes;i++){
+
+      for (int i = 0; i < nbNodes; i++) {
         Node n = new Node(i,Integer.parseInt(bufferedReader.readLine()));
         nodes.add(n);
         nodesSorted.add(n);
       }
-      links = new boolean[nbNodes][];
-      for(int i = 0;i<nbNodes;i++){
-        links[i]= new boolean[nbNodes];
-        for(int j =0;j<nbNodes;j++){
-          links[i][j]= false;
-        }
-      }
 
-      for(int i = 0;i<nbLinks;i++){
+      // Extract the links from the file.
+      for (int i = 0; i < nbLinks; i++) {
         String[] values = bufferedReader.readLine().split(" ");
-        int a = Integer.parseInt(values[0])-1;
-        int b = Integer.parseInt(values[1])-1;
-        links[a][b]=true;
-        links[b][a]=true;
+        int a = Integer.parseInt(values[0]) - 1;
+        int b = Integer.parseInt(values[1]) - 1;
+
+        // Indicate that a link exists between these nodes.
         nodes.get(a).links.add(b);
         nodes.get(b).links.add(a);
-        objLinks.add(new Link(nodes.get(a),nodes.get(b)));
+        objLinks.add(new Link(nodes.get(a), nodes.get(b)));
       }
 
       bufferedReader.close();         
@@ -106,7 +109,7 @@ public class rang {
       count++;
       n.links.sort(new linkWeightComparator());
     }		
-    for(Link l:objLinks) {
+    for (Link l : objLinks) {
       l.updateRank();
     }
     objLinks.sort(new weightComparator());
@@ -116,78 +119,127 @@ public class rang {
   public static void test3() {
     int[] isInGraph = new int[nodesSorted.size()];
     for (int i = 0; i < isInGraph.length; i++) {
-      isInGraph[i]=-1;
+      isInGraph[i] = -1;
     }
     semWaitEnd = new Semaphore(0);
-    lookingForWork= new Stack<BackTrackThread>();
+    lookingForWork = new Stack<BackTrackThread>();
     semGiveWork = new Semaphore(1);
     threads = new BackTrackThread[3];
-    for(int i=0;i<3;i++) {
-      threads[i]=new BackTrackThread();
+    for (int i = 0; i < 3; i++) {
+      threads[i] = new BackTrackThread();
       threads[i].start();
     }
 
     if (parallelBackTrack(isInGraph)){
-      isDone=true;
-    }else{	
-      if(isDone) {
-        isInGraph=serverRet;
-      }else{
-        try{
+      isDone = true;
+    } else {	
+      if (isDone) {
+        isInGraph = serverRet;
+      } else {
+        try {
           System.out.println("\n\n\nMain Thread Waiting!\n\n\n");
           semWaitEnd.acquire();
         } catch(Exception e) {
         }
-        isInGraph=serverRet;
+        isInGraph = serverRet;
       }
     }
-    Node[] n =new Node[nodes.size()];
+    Node[] n = new Node[nodes.size()];
 
-    for(int i=0;i<nodes.size();i++) {
-      n[isInGraph[i]]=nodes.get(i);
+    for (int i = 0; i < nodes.size(); i++) {
+      n[isInGraph[i]] = nodes.get(i);
     }
 
-    for (Node nod : n) {
-      System.out.println(nod.id+" : "+nod.height);
+    for (Node node : n) {
+      System.out.println(node.id + " : "+ node.height);
+    }
+    evaluate(new ArrayList<Node>(Arrays.asList(n)));
+
+    int canSeeBefore = validate(n);
+
+    // opt
+    boolean improving = true;
+    int nbPerm = 0;
+    int opt;
+    while (improving) {
+      improving = false;
+      opt = 1;
+      while (opt <= (nbNodes / 2)) {
+        if (opt >= 20) {
+          break;
+        }
+        System.out.println("opt-" + opt);
+        for (int i = 0; i < (nbNodes - (2 * opt) + 1); i++) {
+          for (int j = (i + opt); j < (nbNodes - opt + 1); j++) {
+            nbPerm++;
+            // Temporarily make the swap.
+            for (int k = 0; k < opt; k++) {
+              Node nodeI = n[i + k];
+              Node nodeJ = n[j + k];
+              n[i + k] = nodeJ;
+              n[j + k] = nodeI;
+            }
+
+            int canSeeAfter = validate(n);
+
+            if (canSeeAfter > canSeeBefore) {
+              System.out.println("KEEP " + canSeeAfter);
+              canSeeBefore = canSeeAfter;
+              improving = true;
+            } else {
+              // Reverse the changes.
+              for (int k = 0; k < opt; k++) {
+                Node nodeI = n[i + k];
+                Node nodeJ = n[j + k];
+                n[i + k] = nodeJ;
+                n[j + k] = nodeI;
+              }
+            }
+          }
+        }
+        System.out.println("tried " + nbPerm + "swaps");
+        nbPerm = 0;
+        opt++;
+      }
     }
     evaluate(new ArrayList<Node>(Arrays.asList(n)));
   }
 	
-  public static boolean isPossible( int[] isInGraph){
+  public static boolean isPossible(int[] isInGraph) {
     boolean[] map = new boolean[nbNodes];
-    for(int i=0;i<map.length;i++){
-      if(isInGraph[i]==-1) {
-        map[i]=false;
+    for (int i = 0; i < map.length; i++) {
+      if (isInGraph[i] == -1) {
+        map[i] = false;
       } else {
-        map[i]=true;
+        map[i] = true;
       }
     }
-    for(int i=0;i<isInGraph.length;i++){
-      if(i==-1){
-        dft(map,nodes.get(i));
+    for (int i = 0; i < isInGraph.length; i++) {
+      if (isInGraph[i] == -1) {
+        dft(map, nodes.get(i));
         break;
       }
     }
-    for(boolean b:map){
-      if(!b) {
+    for (boolean b:map) {
+      if (!b) {
         return false;
       }
     }
     return true;
   }
 
-  public static boolean parallelBackTrack(int[] isInGraph){
-    int i=0;
-    for(Node n: nodesSorted){
+  public static boolean parallelBackTrack(int[] isInGraph) {
+    int i = 0;
+    for (Node n: nodesSorted) {
       i++;
       deepest = 0;
-      System.out.println("Testing node #: "+i);
-      isInGraph[n.id]=0;
-      if(parallelBackTrack(isInGraph,1,n)) {
+      System.out.println("Testing node #: "+ i);
+      isInGraph[n.id] = 0;
+      if (parallelBackTrack(isInGraph,1,n)) {
         return true;
       }
-      isInGraph[n.id]=-1;
-      if(isDone){
+      isInGraph[n.id] = -1;
+      if (isDone) {
         break;
       }
     }
@@ -195,34 +247,34 @@ public class rang {
   }
 
   public static boolean parallelBackTrack(int[] isInGraph, int pos, Node n) {
-    if(pos>deepest){
-      deepest =pos;
-      System.out.println("Deepest "+pos);
+    if (pos > deepest) {
+      deepest = pos;
+      System.out.println("Deepest " + pos);
     }
-    if(pos==nodes.size()) {
+    if (pos == nodes.size()) {
       return true;
     } else if (isDone) {
       return false;
     } else {
-      if(pos<deepest-10){
-        if(!isPossible(isInGraph)){
+      if (pos < (deepest - 10)) {
+        if (!isPossible(isInGraph)) {
           return false;
         }
       }
-      for(int i:n.links){
-        if(isInGraph[i]==-1){
-          if(lookingForWork.size()==0){
-            isInGraph[i]=pos;
-            if(parallelBackTrack(isInGraph,pos+1,nodes.get(i))) {
+      for (int i : n.links) {
+        if (isInGraph[i] == -1) {
+          if (lookingForWork.size() == 0) {
+            isInGraph[i] = pos;
+            if (parallelBackTrack(isInGraph, pos + 1, nodes.get(i))) {
               return true;
             }
-            isInGraph[i]=-1;
-          }else{
-            try{
+            isInGraph[i] = -1;
+          } else {
+            try {
               semGiveWork.acquire();
-              lookingForWork.pop().giveWork(isInGraph,pos,nodes.get(i),i);
+              lookingForWork.pop().giveWork(isInGraph, pos, nodes.get(i), i);
               semGiveWork.release();
-            }catch(Exception e){
+            } catch(Exception e) {
             }
           }
         }
@@ -231,34 +283,34 @@ public class rang {
     return false;
   }
 
-  static class BackTrackThread extends Thread{
+  static class BackTrackThread extends Thread {
     Semaphore stop;
     boolean isWork;
-    int[]isInGraph;
+    int[] isInGraph;
     int pos;
     Node n;
-    static int totalId=0;
+    static int totalId = 0;
     int id;
     int i;
-    public BackTrackThread(){
-      isWork=false;
-      stop=new Semaphore(0);
+    public BackTrackThread() {
+      isWork = false;
+      stop = new Semaphore(0);
       id = totalId++;
     }
     public void run() {
-      while(!isDone){
+      while (!isDone) {
         if (isWork) {
-          isInGraph[i]=pos;
-          boolean ret = parallelBackTrack(isInGraph,pos+1,n);
+          isInGraph[i] = pos;
+          boolean ret = parallelBackTrack(isInGraph, pos + 1, n);
           try {
             semGiveWork.acquire();
-            if(ret&&isDone==false){
-              System.out.println(id+" has finished!" + " Pos"+pos);
-              isDone=true;
+            if (ret && isDone == false) {
+              System.out.println(id + " has finished!" + " Pos" + pos);
+              isDone = true;
               serverRet=isInGraph;
               semWaitEnd.release();
             } else {
-              isWork=false;
+              isWork = false;
             }
             semGiveWork.release();
           } catch (InterruptedException e) {
@@ -305,8 +357,7 @@ public class rang {
         max = n.height;
       }
       if (last != null) {
-        if (!links[n.id][last.id])
-        {
+        if (!n.links.contains(last.id)) {
           System.out.println("Placement non valide!" + n.id + 1 + ":" + last.id
             + 1);
           return false;
@@ -318,6 +369,36 @@ public class rang {
     return true;
   }
 
+  /*public static int howManyCanSee(Node[] nodes) {
+    int maxHeight = 0;
+    int canSee = 0;
+    for (Node node : nodes) {
+      if (node.height > maxHeight) {
+        canSee++;
+        maxHeight = node.height;
+      }
+    }
+    return canSee;
+  }*/
+
+  public static int validate(Node[] nodes) {
+    int maxHeight = 0;
+    int canSee = 0;
+    Node lastNode = null;
+    for (Node node : nodes) {
+      if (node.height > maxHeight) {
+        canSee++;
+        maxHeight = node.height;
+      }
+      if (lastNode != null) {
+        if (!node.links.contains(lastNode.id)) {
+          return -1;
+        }
+      }
+      lastNode = node;
+    }
+    return canSee;
+  }
 
   static class linkWeightComparator implements Comparator<Integer> {
     public int compare(Integer a, Integer b) {
