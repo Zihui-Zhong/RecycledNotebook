@@ -22,11 +22,12 @@ public class algo {
 	static Semaphore semWaitEnd;
 
 	static int[] serverRet;
-	
+	static int deepest=0;
+
 	
 	public static void main(String[] args) {
 		// Obtain the arguments (file name and if you must print locations).
-		String fileName = "C:\\Users\\zihui\\Documents\\2.txt";
+		String fileName = "F:\\RecycledNotebook\\558_63109.1";
 		/*for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-f")) {
 				if (args.length > (i + 1)) {
@@ -176,6 +177,10 @@ public class algo {
 	
 	
 	public static boolean parallelBackTrack(int[]isInGraph,int pos,Node n){
+		if(pos>deepest){
+			deepest =pos;
+			System.out.println("Deepest "+pos);
+		}
 		if(pos==nodes.size())
 			return true;
 		else if(isDone)
@@ -192,7 +197,7 @@ public class algo {
 					}else{
 						try{
 							semGiveWork.acquire();
-							lookingForWork.pop().giveWork(isInGraph,pos+1,nodes.get(i));
+							lookingForWork.pop().giveWork(isInGraph,pos,nodes.get(i),i);
 							semGiveWork.release();
 						}catch(Exception e){
 							
@@ -211,35 +216,39 @@ public class algo {
 		int[]isInGraph;
 		int pos;
 		Node n;
-		
+		static int totalId=0;
+		int id;
+		int i;
 		public BackTrackThread(){
 			isWork=false;
+    		stop=new Semaphore(0);
+    		id = totalId++;
 		}
         public void run() {
         	while(!isDone){
         		if(isWork){
-        			boolean ret = parallelBackTrack(isInGraph,pos,n);
-        			if(ret){
-						try {
-							semGiveWork.acquire();
+					isInGraph[i]=pos;
+        			boolean ret = parallelBackTrack(isInGraph,pos+1,n);
+					try {
+						semGiveWork.acquire();
+						if(ret&&isDone==false){
+							System.out.println(id+" has finished!" + " Pos"+pos);
 	        				isDone=true;
 	        				serverRet=isInGraph;
 	        				semWaitEnd.release();
-							semGiveWork.release();
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						}else{
+							isWork=false;
 						}
-        			}else{
-        				isWork=false;
-        			}
+						semGiveWork.release();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
         		}
         		else{
-            		stop=new Semaphore(0);
             		try{
             			lookingForWork.add(this);
             			stop.acquire();
-            		
             		}catch(Exception e){
             		
             		}
@@ -248,12 +257,14 @@ public class algo {
         	}
         }
         
-        public void giveWork(int[]isInGraph,int pos,Node n){
+        public void giveWork(int[]isInGraph,int pos,Node n,int i){
         	this.isInGraph=isInGraph.clone();
         	this.pos=pos;
         	this.n=n;
         	isWork=true;
+        	this.i=i;
         	stop.release();
+        	
         }
 	}
 	
