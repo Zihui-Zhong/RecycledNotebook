@@ -27,7 +27,7 @@ public class algo {
 	
 	public static void main(String[] args) {
 		// Obtain the arguments (file name and if you must print locations).
-		String fileName = "F:\\RecycledNotebook\\558_63109.1";
+		String fileName = "F:\\RecycledNotebook\\558_63109.0";
 		/*for (int i = 0; i < args.length; i++) {
 			if (args[i].equals("-f")) {
 				if (args.length > (i + 1)) {
@@ -128,16 +128,14 @@ public class algo {
 		
 		if(parallelBackTrack(isInGraph)){
 			isDone=true;
-			System.out.println("Not");
-
 		}else{	
-			System.out.println("WIN");
 			if(isDone)
 			{
 				isInGraph=serverRet;
 			}else{
 				try{
-				semWaitEnd.acquire();
+					System.out.println("\n\n\nMain Thread Waiting!\n\n\n");
+					semWaitEnd.acquire();
 				}
 				catch(Exception e){
 					
@@ -157,10 +155,36 @@ public class algo {
 		evaluate(new ArrayList<Node>(Arrays.asList(n)));
 	}
 	
+	public static boolean isPossible( int[] isInGraph){
+		boolean[] map = new boolean[nbNodes];
+		for(int i=0;i<map.length;i++){
+			if(isInGraph[i]==-1)
+				map[i]=false;
+			else
+				map[i]=true;
+		}
+		for(int i=0;i<isInGraph.length;i++){
+			if(i==-1){
+				dft(map,nodes.get(i));
+				break;
+			}
+		}
+		for(boolean b:map){
+			if(!b)
+				return false;
+		}
+		return true;
+	}
+	
+	
+	
 	public static boolean parallelBackTrack(int[] isInGraph){
 
+		int i=0;
 		for(Node n: nodesSorted){
-			System.out.println("WAS");
+			i++;
+			deepest = 0;
+			System.out.println("Testing node #: "+i);
 			isInGraph[n.id]=0;
 			if(parallelBackTrack(isInGraph,1,n))
 				return true;
@@ -186,8 +210,12 @@ public class algo {
 		else if(isDone)
 			return false;
 		else{
+			if(pos<deepest-10){
+				if(!isPossible(isInGraph)){
+					return false;
+				}
+			}
 			for(int i:n.links){
-				
 				if(isInGraph[i]==-1){
 					if(lookingForWork.size()==0){
 						isInGraph[i]=pos;
@@ -268,202 +296,6 @@ public class algo {
         }
 	}
 	
-	//BACKTRACK
-	public static void test2(){
-		int[] isInGraph= new int[nodesSorted.size()];
-		for(int i=0;i<isInGraph.length;i++){
-			isInGraph[i]=-1;
-		}
-		
-
-		if(backTrack(isInGraph)){
-			System.out.println("Wat");
-		}else{	
-			System.out.println("we");
-		}
-		Node[] n =new Node[nodes.size()];
-		for(int i=0;i<nodes.size();i++)
-			n[isInGraph[i]]=nodes.get(i);
-
-		for(Node nod:n){
-			System.out.println(nod.id+" : "+nod.height);
-		}
-		evaluate(new ArrayList(Arrays.asList(n)));
-		
-	}
-	public static boolean backTrack(int[] isInGraph){
-
-		for(Node n: nodesSorted){
-			System.out.println("WAT");
-			isInGraph[n.id]=0;
-			if(backTrack(isInGraph,1,n))
-				return true;
-			isInGraph[n.id]=-1;
-		}
-		
-		
-		return false;
-		
-	}
-	
-	
-	public static boolean backTrack(int[]isInGraph,int pos,Node n){
-		if(pos==nodes.size())
-			return true;
-		else{
-			for(int i:n.links){
-				if(isInGraph[i]==-1){
-					isInGraph[i]=pos;
-					if(backTrack(isInGraph,pos+1,nodes.get(i)))
-						return true;
-					isInGraph[i]=-1;
-				}
-			}
-		}
-		return false;
-
-	}
-	
-	public static void test1(){
-		boolean[] array = new boolean[objLinks.size()];
-		
-		for(boolean b : array)
-			b=false;
-
-	
-		
-		if(calculate(0,0))
-			System.out.println("WAT");
-		else
-			System.out.println("WHY");
-				
-		
-		Node a=null;
-		Node b= null;
-		Node min=null;
-		int minValue=10000000;
-		for(Node n:nodes){
-			if(n.links.size()==1)
-			{
-				if(a==null)
-					a=n;
-				else
-					b=n;
-			}
-			if(n.height<minValue)
-			{
-				minValue = n.height;
-				min=n;
-			}
-		}
-		Node start=null;
-		if(a==null){
-			start = min;
-		}else{
-			if(a.height<b.height)
-				start = a;
-			else
-				start = b;
-		}
-		boolean[] included=new boolean[nodes.size()];
-		for(boolean bool:included)
-			bool=false;
-		
-		ArrayList<Node> result=new ArrayList<Node>();
-		result.add(start);
-		included[start.id]=true;
-		boolean end=false;
-		for(int i=0;!end;i++){
-			end = true;
-			ArrayList<Integer> list = result.get(i).links;
-			for(Integer in:list){
-				if(!included[in])
-				{
-					included[in]=true;
-					result.add(nodes.get(in));
-					end = false;
-					break;
-				}
-			}
-		}
-		System.out.println();
-		
-		for(Node n : nodes){
-			System.out.println(n.id+" "+n.links.size());
-		}
-
-		for(Node n : result){
-			System.out.println(n.id+" "+n.height);
-		}
-		System.out.println("\n"+result.size());
-
-		
-
-	}
-	
-	public static boolean calculate(int start,int level){
-		
-		if(checkEnd())
-			return true;
-		for(int i=start;i<objLinks.size();i++)
-			if(canRemove(i))
-			{
-				remove(i);
-				if(test()){
-					if(calculate(i+1,level+1))
-						return true;
-				}
-				add(i);
-			}
-		return false;
-	}
-	
-
-	public static boolean checkEnd(){
-		for(Node n:nodes)
-			if(n.links.size()>2)
-				return false;
-		return true;
-	}
-	
-	public static boolean canRemove(int i){
-		Link l = objLinks.get(i);
-		if(l.a.links.size()<3||l.b.links.size()<3)
-			return false;
-		return true;
-	}
-	
-	public static void add(int i){
-		Link l = objLinks.get(i);
-		add(l);
-	}
-	
-	public static void add(Link l){
-		l.a.links.add((Integer) l.b.id);
-		l.b.links.add((Integer) l.a.id);
-
-	}
-
-	public static void remove(int i){
-		Link l = objLinks.get(i);
-		remove(l);
-	}
-	public static void remove(Link l){
-		l.a.links.remove((Integer) l.b.id);
-		l.b.links.remove((Integer) l.a.id);
-
-	}
-	public static boolean test(){
-		
-		boolean[]map = new boolean[nodes.size()];
-		for(boolean b:map)
-			b=false;
-		dft(map,nodes.get(0));
-		for(boolean b:map)
-			if(!b)
-				return false;
-		return true;
-	}
 	
 	public static void dft(boolean[] map,Node n){
 		map[n.id]=true;
@@ -474,50 +306,6 @@ public class algo {
 		}
 	}
 	
-	public static ArrayList<Node> vorace(ArrayList<Node> listId, ArrayList<Node> listSorted){
-		boolean[] in = new boolean[nbNodes];
-		for(boolean b : in)
-			b=false;
-		boolean ended = false;
-		ArrayList<Node> ret = new ArrayList<Node>();
-		ret.add(listSorted.get(0));
-		Node lastNode = listSorted.get(0);
-		in[lastNode.id]=true;
-		while(!ended){
-			ArrayList<Integer> possibleLinks = lastNode.links;
-			int min=-1;
-			int minIndex=0;
-			for(Integer i : possibleLinks){
-				if(!in[i]){
-					int current= listId.get(i).rank-lastNode.rank-1;
-					if(current>0){
-						if(min==-1)
-						{
-							minIndex = i;
-							min = listId.get(i).rank-lastNode.rank-1;
-						}else
-						{
-
-							if(current<min){
-								min=current;
-								minIndex = i;
-							}
-						}
-					}
-				}
-			}
-			if(min !=-1){
-				lastNode = listId.get(minIndex);
-				ret.add(lastNode);
-				in[minIndex]=true;
-			}else{
-				ended = true;
-			}
-
-		}
-		return ret;
-	}
-
 	public static boolean evaluate(ArrayList<Node> list){
 		int max =0;
 		int cansee= 0;
