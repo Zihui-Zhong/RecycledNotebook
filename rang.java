@@ -26,10 +26,6 @@ public class rang {
   // Array
   static ArrayList<Link> objLinks; 
 
-  // A two-dimensional array, indexed with the noded id, containing an array
-  // of booleans, indexed with the nodes id. True if there is a link between
-  // both nodes.
-
   static boolean isDone = false;
 
   static Stack<BackTrackThread> lookingForWork;
@@ -45,12 +41,15 @@ public class rang {
   static int deepest = 0;
 
   static long beginTime;
+
+  // The name of the input file.
+  static String fileName;
+
+  // If the -p option is set.
+  static boolean printResult = false;
   
   // Entry point of the program.
   public static void main(String[] args) {
-	  beginTime= System.currentTimeMillis();
-    String fileName = "G:\\RecycledNotebook\\558_31973.0";
-
     // Obtain the arguments (file name and if the heights must be printed).
     for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-f")) {
@@ -58,6 +57,8 @@ public class rang {
           i++;
           fileName = args[i];
         }
+      } else if (args[i].equals("-p")) {
+        printResult = true;
       }
     }
 
@@ -158,8 +159,10 @@ public class rang {
 
     evaluate(n);
 
+    printResult(n);
+
     int canSeeBefore = validate(n);
-    nOptOptimization();
+    consecutiveNodesSwap();
     nOptimisation(2);
     
     for(int i=3;i<nbNodes;i++){
@@ -337,6 +340,22 @@ public class rang {
     return true;
   }
 
+  // Method to print the current best solution.
+  public static void printResult(List<Node> list) {
+    int canSee = validate(list);
+System.out.println("PRINTRESULT");
+    // If -p is not set, only display the number of nodes that can't see.
+    //if (!printResult) {
+      System.out.println("Ecoliers qui ne peuvent voir : " + (list.size() - canSee));
+    //}
+    if (printResult) {
+      for (Node n : list) {
+        System.out.println((n.id + 1));
+      }
+      System.out.println("fin");
+    }
+  }
+
   public static int validate(List<Node> nodes) {
     int maxHeight = 0;
     int canSee = 0;
@@ -357,91 +376,97 @@ public class rang {
   }
   
   public static int validate(Node[] nodes) {
-	    int maxHeight = 0;
-	    int canSee = 0;
-	    Node lastNode = null;
-	    for (Node node : nodes) {
-	      if (node.height > maxHeight) {
-	        canSee++;
-	        maxHeight = node.height;
-	      }
-	      if (lastNode != null) {
-	        if (!node.links.contains(lastNode.id)) {
-	          return -1;
-	        }
-	      }
-	      lastNode = node;
-	    }
-	    return canSee;
-	  }
+    int maxHeight = 0;
+    int canSee = 0;
+    Node lastNode = null;
+    for (Node node : nodes) {
+      if (node.height > maxHeight) {
+        canSee++;
+        maxHeight = node.height;
+      }
+      if (lastNode != null) {
+        if (!node.links.contains(lastNode.id)) {
+          return -1;
+        }
+      }
+      lastNode = node;
+    }
+    return canSee;
+  }
   
   public static boolean validateClustersJoinable(List<List<Node>> subsets) {
-	    for (int i = 0; i < subsets.size() - 1; i++) {
-	      // Verify if the last element of this subset can be matched with the first
-	      // elements of the following subset.
-	      int lastIndex = subsets.get(i).size() - 1;
-	      int idOfFirstElement = subsets.get(i + 1).get(0).id;
-	      if (!subsets.get(i).get(lastIndex).links.contains(idOfFirstElement)) {
-	        return false;
-	      }
-	    }
-	    return true;
- }
+    for (int i = 0; i < subsets.size() - 1; i++) {
+      // Verify if the last element of this subset can be matched with the first
+      // elements of the following subset.
+      int lastIndex = subsets.get(i).size() - 1;
+      int idOfFirstElement = subsets.get(i + 1).get(0).id;
+      if (!subsets.get(i).get(lastIndex).links.contains(idOfFirstElement)) {
+        return false;
+      }
+    }
+    return true;
+  }
   
   public static void nOptimisation(int nbOpt){
-  		System.out.println("NOpt Optimisation! n="+nbOpt);
-	  canSeeBefore=validate(n);
-	  int[] pos = new int[nbOpt];
-	  nOptimisation(nbOpt,0,pos,0);
-	  canSeeBefore=validate(n);
-	  System.out.println("NOpt Optimisation! n="+nbOpt+" Ended :"+canSeeBefore);
-
+    System.out.println("NOpt Optimisation! n="+nbOpt);
+    canSeeBefore=validate(n);
+    int[] pos = new int[nbOpt];
+    nOptimisation(nbOpt,0,pos,0);
+    canSeeBefore=validate(n);
+    System.out.println("NOpt Optimisation! n="+nbOpt+" Ended :"+canSeeBefore);
   }
 
   public static void nOptimisation(int nbOpt, int currentPos, int[] pos,int startIndex){
-	  if(currentPos==nbOpt)
-	  {
-		  ArrayList<List<Node>> subsets = new ArrayList<List<Node>>();
-		  int last =0;
-		  for(int i=0;i<pos.length;i++){
-			  int next = pos[i]+1;
-			  subsets.add(n.subList(last, next));
-			  last = next;
-		  }
-		  subsets.add(n.subList(last,nbNodes));
-		  int[] positions=new int[subsets.size()];
-		  nPermutation(subsets,positions,0);
-		  
-	  }
-	  else{
-		for (int i = startIndex; i < nbNodes - (nbOpt-currentPos); i++) {
-		  pos[currentPos]=i;
-		  nOptimisation(nbOpt,currentPos+1,pos,i+1);
-	  	}
-	  }
+    if(currentPos==nbOpt) {
+      ArrayList<List<Node>> subsets = new ArrayList<List<Node>>();
+      int last =0;
+      for (int i=0;i<pos.length;i++){
+        int next = pos[i]+1;
+        subsets.add(n.subList(last, next));
+        last = next;
+      }
+      subsets.add(n.subList(last,nbNodes));
+      int[] positions=new int[subsets.size()];
+      nPermutation(subsets,positions,0);
+    } else {
+      for (int i = startIndex; i < nbNodes - (nbOpt-currentPos); i++) {
+        pos[currentPos]=i;
+        nOptimisation(nbOpt,currentPos+1,pos,i+1);
+      }
+    }
   }
-  	static int canSeeBefore = 0;
 
-  public static void nPermutation(ArrayList<List<Node>> subsets, int[] positions,int current){
-	  if(current==subsets.size()){
-	        List<List<Node>> possibleArrangement = new ArrayList<List<Node>>();
-	        boolean tryit=false;
-	        for(int i=0;i<positions.length;i++){
-	        	if (positions[i]!=i)
-	        		tryit=true;
-	        	possibleArrangement.add(subsets.get(positions[i]));
-	        }
-	        if(!tryit)
-	        	return;
-	        if (validateClustersJoinable(possibleArrangement)) {
-	        	ArrayList<Node> newList = new ArrayList<Node>();
-	        	for(int i=0;i<possibleArrangement.size();i++)
-	        		newList.addAll(possibleArrangement.get(i));
+  static int canSeeBefore = 0;
+
+  public static void nPermutation(ArrayList<List<Node>> subsets, int[] positions, int current) {
+    if (current == subsets.size()) {
+      List<List<Node>> possibleArrangement = new ArrayList<List<Node>>();
+      boolean tryit=false;
+      for (int i = 0; i < positions.length; i++) {
+        if (positions[i] != i) {
+          tryit=true;
+        }
+        possibleArrangement.add(subsets.get(positions[i]));
+      }
+
+      if (!tryit) {
+        return;
+      }
+
+      if (validateClustersJoinable(possibleArrangement)) {
+        ArrayList<Node> newList = new ArrayList<Node>();
+
+        for (int i = 0; i < possibleArrangement.size(); i++) {
+          newList.addAll(possibleArrangement.get(i));
+        }
 	        	// Verify if the new permuatation is an improvement.
 	        	int canSeeAfter = validate(newList);
 	        	if (canSeeAfter > canSeeBefore) {
 	        		System.out.println("IMPROVEMENT " +(subsets.size()-1)+" : "+canSeeAfter);
-        		    nOptOptimization();
+                            // Print the new result.
+                            printResult(newList);
+                            // call again the consecutive nodes swap algorithm.
+        		    consecutiveNodesSwap();
 	        		canSeeBefore = canSeeAfter;
 	        		n=newList;
 	        		if(subsets.size()-1>2){
@@ -470,7 +495,7 @@ public class rang {
 	  }
   }
 	  
-  public static void nOptOptimization() {
+  public static void consecutiveNodesSwap() {
     int canSeeBefore = validate(n);
     int nbPerm = 0;
     int opt=1;
@@ -491,8 +516,8 @@ public class rang {
             int firstBIndex =j;
             int lastAIndex = i+opt-1;
             int lastBIndex = j+opt-1;
-            if(firstAIndex>0)
-            	if(!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
+            if (firstAIndex>0)
+            	if (!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
                     continue;
             if(firstBIndex>0)
             	if(!n.get(firstBIndex-1).links.contains(n.get(firstAIndex).id))
@@ -523,6 +548,9 @@ public class rang {
                   n.set(i + k,nodeJ);
                   n.set(j + k,nodeI);
                 }
+
+              // Print this new result.
+              printResult(n);
 
             } 
             
