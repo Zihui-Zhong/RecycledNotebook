@@ -174,7 +174,7 @@ public class rang {
 
   }
   
-  static  ArrayList<Node> n;
+  static ArrayList<Node> n;
   
   public static boolean isPossible(int[] isInGraph) {
     boolean[] map = new boolean[nbNodes];
@@ -492,7 +492,9 @@ System.out.println("PRINTRESULT");
       }
     }
   }
-	  
+
+  // The algorithm used to swap two clusters of consecutive nodes within the
+  // chain. Used for local optimization.
   public static void consecutiveNodesSwap() {
     int canSeeBefore = validate(n);
     int nbPerm = 0;
@@ -502,6 +504,8 @@ System.out.println("PRINTRESULT");
 
     while (opt <= (nbNodes / 2)) {
       if (opt > 20) {
+        // Hard limit set at swaps of 20 nodes. Beyond that, the likelyhood of
+        // a succesful swap is too low.
         break;
       }
       improvement = false;
@@ -514,18 +518,28 @@ System.out.println("PRINTRESULT");
           int firstBIndex =j;
           int lastAIndex = i+opt-1;
           int lastBIndex = j+opt-1;
-          if (firstAIndex>0)
-            if (!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
+
+          if (firstAIndex > 0) {
+            if (!n.get(firstAIndex - 1).links.contains(n.get(firstBIndex).id)) {
               continue;
-            if(firstBIndex>0)
-              if(!n.get(firstBIndex-1).links.contains(n.get(firstAIndex).id))
+            }
+            if (firstBIndex > 0) {
+              if (!n.get(firstBIndex - 1).links.contains(n.get(firstAIndex).id)) {
                 continue;
-              if(lastAIndex+1<nbNodes)
-                if(!n.get(lastAIndex+1).links.contains(n.get(lastBIndex).id))
+              }
+              if ((lastAIndex + 1) < nbNodes) {
+                if (!n.get(lastAIndex + 1).links.contains(n.get(lastBIndex).id)) {
                   continue;
-                if(lastBIndex+1<nbNodes)
-                  if(!n.get(lastBIndex+1).links.contains(n.get(lastAIndex).id))
+                }
+                if ((lastBIndex + 1) < nbNodes) {
+                  if (!n.get(lastBIndex + 1).links.contains(n.get(lastAIndex).id)) {
                     continue;
+                  }
+                }
+              }
+            }
+          }
+
           Node[] temp= n.toArray(new Node[n.size()]);
           for (int k = 0; k < opt; k++) {
             Node nodeI = n.get(i + k);
@@ -537,6 +551,7 @@ System.out.println("PRINTRESULT");
           int canSeeAfter = validate(temp);
 
           if (canSeeAfter > canSeeBefore) {
+            // This new permutation is valid and is an improvement, keeps it.
             System.out.println("KEEP " + canSeeAfter);
             canSeeBefore = canSeeAfter;
             improvement = true;
@@ -547,18 +562,20 @@ System.out.println("PRINTRESULT");
               n.set(i + k,nodeJ);
               n.set(j + k,nodeI);
             }
+
             // Print this new result.
             printResult(n);
           }
         }
       }
+
       System.out.println("tried " + nbPerm + "swaps");
       nbPerm = 0;
 
       if (!improvement) {
         opt++;
-	  } else {
-        opt=1;
+      } else {
+        opt = 1;
       }
     }
   }
@@ -640,7 +657,3 @@ class Link {
     weight = Math.abs(a.rank - b.rank);
   }
 }
-
-
-
-
