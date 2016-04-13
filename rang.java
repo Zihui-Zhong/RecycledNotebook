@@ -459,40 +459,38 @@ System.out.println("PRINTRESULT");
         for (int i = 0; i < possibleArrangement.size(); i++) {
           newList.addAll(possibleArrangement.get(i));
         }
-	        	// Verify if the new permuatation is an improvement.
-	        	int canSeeAfter = validate(newList);
-	        	if (canSeeAfter > canSeeBefore) {
-	        		System.out.println("IMPROVEMENT " +(subsets.size()-1)+" : "+canSeeAfter);
-                            // Print the new result.
-                            printResult(newList);
-                            // call again the consecutive nodes swap algorithm.
-        		    consecutiveNodesSwap();
-	        		canSeeBefore = canSeeAfter;
-	        		n=newList;
-	        		if(subsets.size()-1>2){
-	        		    nOptimisation(2);
-	        		}
-	        		return;
-	        	}
 
-	        }
-	  }else{
-		  for(int i=0;i<subsets.size();i++){
-			  boolean isPresent=false;
-			  for(int j=0;j<current;j++){
-				  if(positions[j]==i)
-				  {
-					  isPresent=true;
-					  break;
-				  }
-			  }
-			  if(!isPresent){
-				  positions[current]=i;
-				  nPermutation(subsets,positions,current+1);
-			  }
-
-		  }
-	  }
+        // Verify if the new permuatation is an improvement.
+        int canSeeAfter = validate(newList);
+        if (canSeeAfter > canSeeBefore) {
+          System.out.println("IMPROVEMENT " +(subsets.size()-1)+" : "+canSeeAfter);
+          // Print the new result.
+          printResult(newList);
+          // call again the consecutive nodes swap algorithm.
+          consecutiveNodesSwap();
+          canSeeBefore = canSeeAfter;
+          n=newList;
+          if(subsets.size()-1>2){
+            nOptimisation(2);
+          }
+          return;
+        }
+      }
+    } else {
+      for(int i=0;i<subsets.size();i++){
+        boolean isPresent=false;
+        for(int j=0;j<current;j++){
+          if(positions[j]==i) {
+            isPresent=true;
+            break;
+          }
+        }
+        if(!isPresent){
+          positions[current]=i;
+          nPermutation(subsets,positions,current+1);
+        }
+      }
+    }
   }
 	  
   public static void consecutiveNodesSwap() {
@@ -502,67 +500,67 @@ System.out.println("PRINTRESULT");
     int nbNodes = n.size();
     boolean improvement = true;
 
-      while (opt <= (nbNodes / 2)) {
-        if (opt > 20) {
-          break;
-        }
-        improvement = false;
-        System.out.println("opt-" + opt);
-        for (int i = 0; i < (nbNodes - (2 * opt) + 1); i++) {
-          for (int j = (i + opt); j < (nbNodes - opt + 1); j++) {
-            nbPerm++;
-            // Temporarily make the swap.
-            int firstAIndex =i;
-            int firstBIndex =j;
-            int lastAIndex = i+opt-1;
-            int lastBIndex = j+opt-1;
-            if (firstAIndex>0)
-            	if (!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
-                    continue;
+    while (opt <= (nbNodes / 2)) {
+      if (opt > 20) {
+        break;
+      }
+      improvement = false;
+      System.out.println("opt-" + opt);
+      for (int i = 0; i < (nbNodes - (2 * opt) + 1); i++) {
+        for (int j = (i + opt); j < (nbNodes - opt + 1); j++) {
+          nbPerm++;
+          // Temporarily make the swap.
+          int firstAIndex =i;
+          int firstBIndex =j;
+          int lastAIndex = i+opt-1;
+          int lastBIndex = j+opt-1;
+          if (firstAIndex>0)
+            if (!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
+              continue;
             if(firstBIndex>0)
-            	if(!n.get(firstBIndex-1).links.contains(n.get(firstAIndex).id))
+              if(!n.get(firstBIndex-1).links.contains(n.get(firstAIndex).id))
+                continue;
+              if(lastAIndex+1<nbNodes)
+                if(!n.get(lastAIndex+1).links.contains(n.get(lastBIndex).id))
+                  continue;
+                if(lastBIndex+1<nbNodes)
+                  if(!n.get(lastBIndex+1).links.contains(n.get(lastAIndex).id))
                     continue;
-            if(lastAIndex+1<nbNodes)
-            	if(!n.get(lastAIndex+1).links.contains(n.get(lastBIndex).id))
-                    continue;
-            if(lastBIndex+1<nbNodes)
-            	if(!n.get(lastBIndex+1).links.contains(n.get(lastAIndex).id))
-                    continue;
-            Node[] temp= n.toArray(new Node[n.size()]);
+          Node[] temp= n.toArray(new Node[n.size()]);
+          for (int k = 0; k < opt; k++) {
+            Node nodeI = n.get(i + k);
+            Node nodeJ = n.get(j + k);
+            temp[i + k] =nodeJ;
+            temp[j + k]= nodeI;
+          }
+
+          int canSeeAfter = validate(temp);
+
+          if (canSeeAfter > canSeeBefore) {
+            System.out.println("KEEP " + canSeeAfter);
+            canSeeBefore = canSeeAfter;
+            improvement = true;
+			
             for (int k = 0; k < opt; k++) {
               Node nodeI = n.get(i + k);
               Node nodeJ = n.get(j + k);
-              temp[i + k] =nodeJ;
-              temp[j + k]= nodeI;
+              n.set(i + k,nodeJ);
+              n.set(j + k,nodeI);
             }
-
-            int canSeeAfter = validate(temp);
-
-            if (canSeeAfter > canSeeBefore) {
-              System.out.println("KEEP " + canSeeAfter);
-              canSeeBefore = canSeeAfter;
-              improvement = true;
-              for (int k = 0; k < opt; k++) {
-                  Node nodeI = n.get(i + k);
-                  Node nodeJ = n.get(j + k);
-                  n.set(i + k,nodeJ);
-                  n.set(j + k,nodeI);
-                }
-
-              // Print this new result.
-              printResult(n);
-
-            } 
-            
+            // Print this new result.
+            printResult(n);
           }
         }
-        System.out.println("tried " + nbPerm + "swaps");
-        nbPerm = 0;
-        if(!improvement)
-        	opt++;
-        else
-        	opt=1;
       }
+      System.out.println("tried " + nbPerm + "swaps");
+      nbPerm = 0;
+
+      if (!improvement) {
+        opt++;
+	  } else {
+        opt=1;
+      }
+    }
   }
 
   static class linkWeightComparator implements Comparator<Integer> {
