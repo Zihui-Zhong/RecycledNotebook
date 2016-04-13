@@ -49,7 +49,7 @@ public class rang {
   // Entry point of the program.
   public static void main(String[] args) {
 	  beginTime= System.currentTimeMillis();
-    String fileName = "F:\\RecycledNotebook\\558_31973.0";
+    String fileName = "F:\\RecycledNotebook\\66_970.2";
 /*
     // Obtain the arguments (file name and if the heights must be printed).
     for (int i = 0; i < args.length; i++) {
@@ -159,13 +159,13 @@ public class rang {
     evaluate(n);
 
     int canSeeBefore = validate(n);
+    nOptOptimization();
+    nOptimisation(2);
     
-    long t = System.currentTimeMillis();
-    for(int i=2;i<nbNodes;i++){
+    for(int i=3;i<nbNodes;i++){
     	int cansee=validate(n);
     	nOptimisation(i);
     	canSeeBefore = validate(n);
-        nOptOptimization();
     	evaluate(n);
     	if(canSeeBefore>cansee){
     		i--;
@@ -377,6 +377,9 @@ public class rang {
 	  canSeeBefore=validate(n);
 	  int[] pos = new int[nbOpt];
 	  nOptimisation(nbOpt,0,pos,0);
+	  canSeeBefore=validate(n);
+	  System.out.println("NOpt Optimisation! n="+nbOpt+" Ended :"+canSeeBefore);
+
   }
 
   public static void nOptimisation(int nbOpt, int currentPos, int[] pos,int startIndex){
@@ -421,9 +424,13 @@ public class rang {
 	        	// Verify if the new permuatation is an improvement.
 	        	int canSeeAfter = validate(newList);
 	        	if (canSeeAfter > canSeeBefore) {
-	        		System.out.println("IMPROVEMENT " +subsets.size()+" : "+canSeeAfter);
+	        		System.out.println("IMPROVEMENT " +(subsets.size()-1)+" : "+canSeeAfter);
 	        		canSeeBefore = canSeeAfter;
 	        		n=newList;
+	        		if(subsets.size()-1>2){
+	        		    nOptOptimization();
+	        		    nOptimisation(2);
+	        		}
 	        		return;
 	        	}
 
@@ -455,7 +462,7 @@ public class rang {
     boolean improvement = true;
 
       while (opt <= (nbNodes / 2)) {
-        if (opt > 10) {
+        if (opt > 20) {
           break;
         }
         improvement = false;
