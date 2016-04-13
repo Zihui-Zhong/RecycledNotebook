@@ -49,8 +49,8 @@ public class rang {
   // Entry point of the program.
   public static void main(String[] args) {
 	  beginTime= System.currentTimeMillis();
-    String fileName = "F:\\RecycledNotebook\\66_970.2";
-/*
+    String fileName = "G:\\RecycledNotebook\\558_31973.0";
+
     // Obtain the arguments (file name and if the heights must be printed).
     for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-f")) {
@@ -66,7 +66,7 @@ public class rang {
       System.out.println("No file was specified, please use -f.");
       return;
     }
- 	*/
+ 	
     try {
       nodes = new ArrayList<Node>();
       objLinks = new ArrayList<Link>();
@@ -167,14 +167,11 @@ public class rang {
     	nOptimisation(i);
     	canSeeBefore = validate(n);
     	evaluate(n);
-    	if(canSeeBefore>cansee){
-    		i--;
-    	}    		
     }
 
   }
   
-  static  List<Node> n;
+  static  ArrayList<Node> n;
   
   public static boolean isPossible(int[] isInGraph) {
     boolean[] map = new boolean[nbNodes];
@@ -358,7 +355,26 @@ public class rang {
     }
     return canSee;
   }
-
+  
+  public static int validate(Node[] nodes) {
+	    int maxHeight = 0;
+	    int canSee = 0;
+	    Node lastNode = null;
+	    for (Node node : nodes) {
+	      if (node.height > maxHeight) {
+	        canSee++;
+	        maxHeight = node.height;
+	      }
+	      if (lastNode != null) {
+	        if (!node.links.contains(lastNode.id)) {
+	          return -1;
+	        }
+	      }
+	      lastNode = node;
+	    }
+	    return canSee;
+	  }
+  
   public static boolean validateClustersJoinable(List<List<Node>> subsets) {
 	    for (int i = 0; i < subsets.size() - 1; i++) {
 	      // Verify if the last element of this subset can be matched with the first
@@ -418,17 +434,17 @@ public class rang {
 	        if(!tryit)
 	        	return;
 	        if (validateClustersJoinable(possibleArrangement)) {
-	        	List<Node> newList = new ArrayList<Node>();
+	        	ArrayList<Node> newList = new ArrayList<Node>();
 	        	for(int i=0;i<possibleArrangement.size();i++)
 	        		newList.addAll(possibleArrangement.get(i));
 	        	// Verify if the new permuatation is an improvement.
 	        	int canSeeAfter = validate(newList);
 	        	if (canSeeAfter > canSeeBefore) {
 	        		System.out.println("IMPROVEMENT " +(subsets.size()-1)+" : "+canSeeAfter);
+        		    nOptOptimization();
 	        		canSeeBefore = canSeeAfter;
 	        		n=newList;
 	        		if(subsets.size()-1>2){
-	        		    nOptOptimization();
 	        		    nOptimisation(2);
 	        		}
 	        		return;
@@ -487,29 +503,29 @@ public class rang {
             if(lastBIndex+1<nbNodes)
             	if(!n.get(lastBIndex+1).links.contains(n.get(lastAIndex).id))
                     continue;
-
+            Node[] temp= n.toArray(new Node[n.size()]);
             for (int k = 0; k < opt; k++) {
               Node nodeI = n.get(i + k);
               Node nodeJ = n.get(j + k);
-              n.set((i + k), nodeJ);
-              n.set((j + k), nodeI);
+              temp[i + k] =nodeJ;
+              temp[j + k]= nodeI;
             }
 
-            int canSeeAfter = validate(n);
+            int canSeeAfter = validate(temp);
 
             if (canSeeAfter > canSeeBefore) {
               System.out.println("KEEP " + canSeeAfter);
               canSeeBefore = canSeeAfter;
               improvement = true;
-            } else {
-              // Reverse the changes.
               for (int k = 0; k < opt; k++) {
-                Node nodeI = n.get(i + k);
-                Node nodeJ = n.get(j + k);
-                n.set((i + k), nodeJ);
-                n.set((j + k), nodeI);
-              }
-            }
+                  Node nodeI = n.get(i + k);
+                  Node nodeJ = n.get(j + k);
+                  n.set(i + k,nodeJ);
+                  n.set(j + k,nodeI);
+                }
+
+            } 
+            
           }
         }
         System.out.println("tried " + nbPerm + "swaps");
@@ -598,6 +614,7 @@ class Link {
     weight = Math.abs(a.rank - b.rank);
   }
 }
+
 
 
 
