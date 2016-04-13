@@ -464,6 +464,23 @@ public class rang {
           for (int j = (i + opt); j < (nbNodes - opt + 1); j++) {
             nbPerm++;
             // Temporarily make the swap.
+            int firstAIndex =i;
+            int firstBIndex =j;
+            int lastAIndex = i+opt-1;
+            int lastBIndex = j+opt-1;
+            if(firstAIndex>0)
+            	if(!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
+                    continue;
+            if(firstBIndex>0)
+            	if(!n.get(firstBIndex-1).links.contains(n.get(firstAIndex).id))
+                    continue;
+            if(lastAIndex+1<nbNodes)
+            	if(!n.get(lastAIndex+1).links.contains(n.get(lastBIndex).id))
+                    continue;
+            if(lastBIndex+1<nbNodes)
+            	if(!n.get(lastBIndex+1).links.contains(n.get(lastAIndex).id))
+                    continue;
+
             for (int k = 0; k < opt; k++) {
               Node nodeI = n.get(i + k);
               Node nodeJ = n.get(j + k);
