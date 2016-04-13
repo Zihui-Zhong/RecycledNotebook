@@ -345,10 +345,10 @@ public class rang {
     int canSee = validate(list);
 System.out.println("PRINTRESULT");
     // If -p is not set, only display the number of nodes that can't see.
-    //if (!printResult) {
-      System.out.println("Ecoliers qui ne peuvent voir : " + (list.size() - canSee));
-    //}
-    if (printResult) {
+    if (!printResult) {
+      System.out.println((list.size() - canSee));
+    } else {
+      // Else, only display the lsit of students.
       for (Node n : list) {
         System.out.println((n.id + 1));
       }
