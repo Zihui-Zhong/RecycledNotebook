@@ -44,10 +44,13 @@ public class rang {
 
   static int deepest = 0;
 
+  static long beginTime;
+  
   // Entry point of the program.
   public static void main(String[] args) {
-    String fileName = null;
-
+	  beginTime= System.currentTimeMillis();
+    String fileName = "F:\\RecycledNotebook\\558_63109.2";
+/*
     // Obtain the arguments (file name and if the heights must be printed).
     for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-f")) {
@@ -63,7 +66,7 @@ public class rang {
       System.out.println("No file was specified, please use -f.");
       return;
     }
-
+ 	*/
     try {
       nodes = new ArrayList<Node>();
       objLinks = new ArrayList<Link>();
@@ -144,11 +147,6 @@ public class rang {
         isInGraph = serverRet;
       }
     }
-    /*Node[] n = new Node[nodes.size()];
-
-    for (int i = 0; i < nodes.size(); i++) {
-      n[isInGraph[i]] = nodes.get(i);
-    }*/
 
     List<Node> n = new ArrayList<Node>(nodes.size());
     for (int i = 0; i < nodes.size(); i++) {
@@ -158,81 +156,22 @@ public class rang {
       n.set(isInGraph[i], nodes.get(i));
     }
 
-    for (Node node : n) {
-      System.out.println(node.id + " : "+ node.height);
-    }
-
     evaluate(n);
 
     int canSeeBefore = validate(n);
-
-    while (true) {
-      System.out.println("2-opt");
-      n = twoOptOptimization(n);
-      evaluate(n);
-      System.out.println("n-opt");
-      n = nOptOptimization(n);
-      evaluate(n);
-
-      int canSeeAfter = validate(n);
-
-      if (canSeeAfter <= canSeeBefore) {
-        return;
-      } else {
-        canSeeBefore = canSeeAfter;
-      }
+    
+    long t = System.currentTimeMillis();
+    for(int i=2;i<nbNodes;i++){
+    	int cansee=validate(n);
+    	n = nOptimisation(n,i);
+    	canSeeBefore = validate(n);
+        n = nOptOptimization(n);
+    	evaluate(n);
+    	if(canSeeBefore>cansee){
+    		i--;
+    	}    		
     }
 
-/*
-    // Local optimization algorithm. Swap n nodes with n other nodes in the
-    // list, where n goes from 1 to the maximum possible (half the list).
-    boolean improving = true;
-    int canSeeBefore = validate(n);
-    int nbPerm = 0;
-    int opt;
-    while (improving) {
-      improving = false;
-      opt = 1;
-      while (opt <= (nbNodes / 2)) {
-        if (opt >= 20) {
-          break;
-        }
-        System.out.println("opt-" + opt);
-        for (int i = 0; i < (nbNodes - (2 * opt) + 1); i++) {
-          for (int j = (i + opt); j < (nbNodes - opt + 1); j++) {
-            nbPerm++;
-            // Temporarily make the swap.
-            for (int k = 0; k < opt; k++) {
-              Node nodeI = n[i + k];
-              Node nodeJ = n[j + k];
-              n[i + k] = nodeJ;
-              n[j + k] = nodeI;
-            }
-
-            int canSeeAfter = validate(n);
-
-            if (canSeeAfter > canSeeBefore) {
-              System.out.println("KEEP " + canSeeAfter);
-              canSeeBefore = canSeeAfter;
-              improving = true;
-            } else {
-              // Reverse the changes.
-              for (int k = 0; k < opt; k++) {
-                Node nodeI = n[i + k];
-                Node nodeJ = n[j + k];
-                n[i + k] = nodeJ;
-                n[j + k] = nodeI;
-              }
-            }
-          }
-        }
-        System.out.println("tried " + nbPerm + "swaps");
-        nbPerm = 0;
-        opt++;
-      }
-    }
-    evaluate(new ArrayList<Node>(Arrays.asList(n)));
-*/
   }
 	
   public static boolean isPossible(int[] isInGraph) {
@@ -399,39 +338,6 @@ public class rang {
     return true;
   }
 
-  /*public static int howManyCanSee(Node[] nodes) {
-    int maxHeight = 0;
-    int canSee = 0;
-    for (Node node : nodes) {
-      if (node.height > maxHeight) {
-        canSee++;
-        maxHeight = node.height;
-      }
-    }
-    return canSee;
-  }*/
-
-/*
-  public static int validate(Node[] nodes) {
-    int maxHeight = 0;
-    int canSee = 0;
-    Node lastNode = null;
-    for (Node node : nodes) {
-      if (node.height > maxHeight) {
-        canSee++;
-        maxHeight = node.height;
-      }
-      if (lastNode != null) {
-        if (!node.links.contains(lastNode.id)) {
-          return -1;
-        }
-      }
-      lastNode = node;
-    }
-    return canSee;
-  }
-*/
-
   public static int validate(List<Node> nodes) {
     int maxHeight = 0;
     int canSee = 0;
@@ -452,139 +358,103 @@ public class rang {
   }
 
   public static boolean validateClustersJoinable(List<List<Node>> subsets) {
-    for (int i = 0; i < subsets.size() - 1; i++) {
-      // Verify if the last element of this subset can be matched with the first
-      // elements of the following subset.
-      int lastIndex = subsets.get(i).size() - 1;
-      int idOfFirstElement = subsets.get(i + 1).get(0).id;
-      if (!subsets.get(i).get(lastIndex).links.contains(idOfFirstElement)) {
-        return false;
-      }
-    }
-    return true;
+	    for (int i = 0; i < subsets.size() - 1; i++) {
+	      // Verify if the last element of this subset can be matched with the first
+	      // elements of the following subset.
+	      int lastIndex = subsets.get(i).size() - 1;
+	      int idOfFirstElement = subsets.get(i + 1).get(0).id;
+	      if (!subsets.get(i).get(lastIndex).links.contains(idOfFirstElement)) {
+	        return false;
+	      }
+	    }
+	    return true;
+ }
+  
+  public static List<Node> nOptimisation(List<Node>list,int n){
+  		System.out.println("NOpt Optimisation! n="+n);
+	  canSeeBefore=validate(list);
+	  int[] pos = new int[n];
+	  return nOptimisation(list,n,0,pos,0);
   }
 
-  public static List<Node> twoOptOptimization(List<Node> n) {
-    // 2-opt algorithm.
-    int canSeeBefore = validate(n);
-
-    for (int i = 0; i < nbNodes - 2; i++) {
-      for (int j = (i + 1); j < nbNodes - 1; j++) {
-        //System.out.println("Considering nodes " + i + " and " + j);
-        // Create sub-lists of the nodes to swap.
-        List<Node> subset1 = n.subList(0, i + 1);
-        List<Node> subset2 = n.subList(i + 1, j + 1);
-        List<Node> subset3 = n.subList(j + 1, nbNodes);
-        //System.out.println("Sublists from 0 to " + (i + 1) + " and " +
-          //(i + 1) + " to " + (j + 1) + " and " + (j+ 1) + " to " + nbNodes);
-
-        // Try the permutation 3-2-1.
-        List<List<Node>> subsets = new ArrayList<List<Node>>(3);
-        subsets.add(subset3);
-        subsets.add(subset2);
-        subsets.add(subset1);
-        if (validateClustersJoinable(subsets)) {
-          List<Node> newList = new ArrayList<Node>(subset3);
-          newList.addAll(subset2);
-          newList.addAll(subset1);
-          // Verify if the new permuatation is an improvement.
-          int canSeeAfter = validate(newList);
-          if (canSeeAfter > canSeeBefore) {
-            System.out.println("IMPROVEMENT");
-            n = new ArrayList<Node>(newList);
-            canSeeBefore = canSeeAfter;
-          }
-        }
-
-        // Try the permutation 3-1-2.
-        subsets = new ArrayList<List<Node>>(3);
-        subsets.add(subset3);
-        subsets.add(subset1);
-        subsets.add(subset2);
-        if (validateClustersJoinable(subsets)) {
-          List<Node> newList = new ArrayList<Node>(subset3);
-          newList.addAll(subset1);
-          newList.addAll(subset2);
-          // Verify if the new permuatation is an improvement.
-          int canSeeAfter = validate(newList);
-          if (canSeeAfter > canSeeBefore) {
-            System.out.println("IMPROVEMENT");
-            n = new ArrayList<Node>(newList);
-            canSeeBefore = canSeeAfter;
-          }
-        }
-
-        // Try the permutation 2-1-3.
-        subsets = new ArrayList<List<Node>>(3);
-        subsets.add(subset2);
-        subsets.add(subset1);
-        subsets.add(subset3);
-        if (validateClustersJoinable(subsets)) {
-          List<Node> newList = new ArrayList<Node>(subset2);
-          newList.addAll(subset1);
-          newList.addAll(subset3);
-          // Verify if the new permuatation is an improvement.
-          int canSeeAfter = validate(newList);
-          if (canSeeAfter > canSeeBefore) {
-            System.out.println("IMPROVEMENT");
-            n = new ArrayList<Node>(newList);
-            canSeeBefore = canSeeAfter;
-          }
-        }
-
-        // Try the permutation 2-3-1.
-        subsets = new ArrayList<List<Node>>(3);
-        subsets.add(subset2);
-        subsets.add(subset3);
-        subsets.add(subset1);
-        if (validateClustersJoinable(subsets)) {
-          List<Node> newList = new ArrayList<Node>(subset2);
-          newList.addAll(subset3);
-          newList.addAll(subset1);
-          // Verify if the new permuatation is an improvement.
-          int canSeeAfter = validate(newList);
-          if (canSeeAfter > canSeeBefore) {
-            System.out.println("IMPROVEMENT");
-            n = new ArrayList<Node>(newList);
-            canSeeBefore = canSeeAfter;
-          }
-        }
-
-        // Try the permutation 1-3-2.
-        subsets = new ArrayList<List<Node>>(3);
-        subsets.add(subset1);
-        subsets.add(subset3);
-        subsets.add(subset2);
-        if (validateClustersJoinable(subsets)) {
-          List<Node> newList = new ArrayList<Node>(subset1);
-          newList.addAll(subset3);
-          newList.addAll(subset2);
-          // Verify if the new permuatation is an improvement.
-          int canSeeAfter = validate(newList);
-          if (canSeeAfter > canSeeBefore) {
-            System.out.println("IMPROVEMENT");
-            n = new ArrayList<Node>(newList);
-            canSeeBefore = canSeeAfter;
-          }
-        }
-      }
-    }
-    return(n);
+  public static List<Node>nOptimisation(List<Node>list, int n, int currentPos, int[] pos,int startIndex){
+	  if(currentPos==n)
+	  {
+		  ArrayList<List<Node>> subsets = new ArrayList<List<Node>>();
+		  int last =0;
+		  for(int i=0;i<pos.length;i++){
+			  int next = pos[i]+1;
+			  subsets.add(list.subList(last, next));
+			  last = next;
+		  }
+		  subsets.add(list.subList(last,nbNodes));
+		  int[] positions=new int[subsets.size()];
+		  list =nPermutation(list,subsets,positions,0);
+		  
+	  }
+	  else{
+		for (int i = startIndex; i < nbNodes - (n-currentPos); i++) {
+		  pos[currentPos]=i;
+		  list = nOptimisation(list,n,currentPos+1,pos,i+1);
+	  	}
+	  }
+	  return list;
   }
+  	static int canSeeBefore = 0;
 
+  public static List<Node> nPermutation(List<Node>list,ArrayList<List<Node>> subsets, int[] positions,int current){
+	  if(current==subsets.size()){
+	        List<List<Node>> possibleArrangement = new ArrayList<List<Node>>();
+	        boolean tryit=false;
+	        for(int i=0;i<positions.length;i++){
+	        	if (positions[i]!=i)
+	        		tryit=true;
+	        	possibleArrangement.add(subsets.get(positions[i]));
+	        }
+	        if(!tryit)
+	        	return list;
+	        if (validateClustersJoinable(possibleArrangement)) {
+	        	List<Node> newList = new ArrayList<Node>();
+	        	for(int i=0;i<possibleArrangement.size();i++)
+	        		newList.addAll(possibleArrangement.get(i));
+	        	// Verify if the new permuatation is an improvement.
+	        	int canSeeAfter = validate(newList);
+	        	if (canSeeAfter > canSeeBefore) {
+	        		System.out.println("IMPROVEMENT " +subsets.size()+" : "+canSeeAfter);
+	        		canSeeBefore = canSeeAfter;
+	        		return newList;
+	        	}
+
+	        }
+	  }else{
+		  for(int i=0;i<subsets.size();i++){
+			  boolean isPresent=false;
+			  for(int j=0;j<current;j++){
+				  if(positions[j]==i)
+				  {
+					  isPresent=true;
+					  break;
+				  }
+			  }
+			  if(!isPresent){
+				  positions[current]=i;
+				  list =nPermutation(list,subsets,positions,current+1);
+			  }
+
+		  }
+	  }
+	  return list;
+  }
+	  
   public static List<Node> nOptOptimization(List<Node> n) {
     int canSeeBefore = validate(n);
     int nbPerm = 0;
-    int opt;
-    int maxOpt = 1;
+    int opt=1;
     int nbNodes = n.size();
     boolean improvement = true;
 
-    while (improvement) {
-      opt = 1;
-
       while (opt <= (nbNodes / 2)) {
-        if (opt > 20) {
+        if (opt > 10) {
           break;
         }
         improvement = false;
@@ -619,9 +489,11 @@ public class rang {
         }
         System.out.println("tried " + nbPerm + "swaps");
         nbPerm = 0;
-        opt++;
+        if(!improvement)
+        	opt++;
+        else
+        	opt=1;
       }
-    }
     return(n);
   }
 
