@@ -49,7 +49,7 @@ public class rang {
   // Entry point of the program.
   public static void main(String[] args) {
 	  beginTime= System.currentTimeMillis();
-    String fileName = "F:\\RecycledNotebook\\558_63109.2";
+    String fileName = "F:\\RecycledNotebook\\558_31973.0";
 /*
     // Obtain the arguments (file name and if the heights must be printed).
     for (int i = 0; i < args.length; i++) {
@@ -148,7 +148,7 @@ public class rang {
       }
     }
 
-    List<Node> n = new ArrayList<Node>(nodes.size());
+    n = new ArrayList<Node>(nodes.size());
     for (int i = 0; i < nodes.size(); i++) {
       n.add(new Node(0, 0));
     }
@@ -163,9 +163,9 @@ public class rang {
     long t = System.currentTimeMillis();
     for(int i=2;i<nbNodes;i++){
     	int cansee=validate(n);
-    	n = nOptimisation(n,i);
+    	nOptimisation(i);
     	canSeeBefore = validate(n);
-        n = nOptOptimization(n);
+        nOptOptimization();
     	evaluate(n);
     	if(canSeeBefore>cansee){
     		i--;
@@ -173,7 +173,9 @@ public class rang {
     }
 
   }
-	
+  
+  static  List<Node> n;
+  
   public static boolean isPossible(int[] isInGraph) {
     boolean[] map = new boolean[nbNodes];
     for (int i = 0; i < map.length; i++) {
@@ -370,39 +372,38 @@ public class rang {
 	    return true;
  }
   
-  public static List<Node> nOptimisation(List<Node>list,int n){
-  		System.out.println("NOpt Optimisation! n="+n);
-	  canSeeBefore=validate(list);
-	  int[] pos = new int[n];
-	  return nOptimisation(list,n,0,pos,0);
+  public static void nOptimisation(int nbOpt){
+  		System.out.println("NOpt Optimisation! n="+nbOpt);
+	  canSeeBefore=validate(n);
+	  int[] pos = new int[nbOpt];
+	  nOptimisation(nbOpt,0,pos,0);
   }
 
-  public static List<Node>nOptimisation(List<Node>list, int n, int currentPos, int[] pos,int startIndex){
-	  if(currentPos==n)
+  public static void nOptimisation(int nbOpt, int currentPos, int[] pos,int startIndex){
+	  if(currentPos==nbOpt)
 	  {
 		  ArrayList<List<Node>> subsets = new ArrayList<List<Node>>();
 		  int last =0;
 		  for(int i=0;i<pos.length;i++){
 			  int next = pos[i]+1;
-			  subsets.add(list.subList(last, next));
+			  subsets.add(n.subList(last, next));
 			  last = next;
 		  }
-		  subsets.add(list.subList(last,nbNodes));
+		  subsets.add(n.subList(last,nbNodes));
 		  int[] positions=new int[subsets.size()];
-		  list =nPermutation(list,subsets,positions,0);
+		  nPermutation(subsets,positions,0);
 		  
 	  }
 	  else{
-		for (int i = startIndex; i < nbNodes - (n-currentPos); i++) {
+		for (int i = startIndex; i < nbNodes - (nbOpt-currentPos); i++) {
 		  pos[currentPos]=i;
-		  list = nOptimisation(list,n,currentPos+1,pos,i+1);
+		  nOptimisation(nbOpt,currentPos+1,pos,i+1);
 	  	}
 	  }
-	  return list;
   }
   	static int canSeeBefore = 0;
 
-  public static List<Node> nPermutation(List<Node>list,ArrayList<List<Node>> subsets, int[] positions,int current){
+  public static void nPermutation(ArrayList<List<Node>> subsets, int[] positions,int current){
 	  if(current==subsets.size()){
 	        List<List<Node>> possibleArrangement = new ArrayList<List<Node>>();
 	        boolean tryit=false;
@@ -412,7 +413,7 @@ public class rang {
 	        	possibleArrangement.add(subsets.get(positions[i]));
 	        }
 	        if(!tryit)
-	        	return list;
+	        	return;
 	        if (validateClustersJoinable(possibleArrangement)) {
 	        	List<Node> newList = new ArrayList<Node>();
 	        	for(int i=0;i<possibleArrangement.size();i++)
@@ -422,7 +423,8 @@ public class rang {
 	        	if (canSeeAfter > canSeeBefore) {
 	        		System.out.println("IMPROVEMENT " +subsets.size()+" : "+canSeeAfter);
 	        		canSeeBefore = canSeeAfter;
-	        		return newList;
+	        		n=newList;
+	        		return;
 	        	}
 
 	        }
@@ -438,15 +440,14 @@ public class rang {
 			  }
 			  if(!isPresent){
 				  positions[current]=i;
-				  list =nPermutation(list,subsets,positions,current+1);
+				  nPermutation(subsets,positions,current+1);
 			  }
 
 		  }
 	  }
-	  return list;
   }
 	  
-  public static List<Node> nOptOptimization(List<Node> n) {
+  public static void nOptOptimization() {
     int canSeeBefore = validate(n);
     int nbPerm = 0;
     int opt=1;
@@ -494,7 +495,6 @@ public class rang {
         else
         	opt=1;
       }
-    return(n);
   }
 
   static class linkWeightComparator implements Comparator<Integer> {
@@ -574,3 +574,6 @@ class Link {
     weight = Math.abs(a.rank - b.rank);
   }
 }
+
+
+
