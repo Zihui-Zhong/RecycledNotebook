@@ -745,21 +745,20 @@ public class rang {
               if (canSeeAfter > canSeeBefore) {
                 canSeeBefore = canSeeAfter;
                 improvement = true;
-                printResult(n);
                 for (int k = 0; k < opt; k++) {
                   Node nodeI = n.get(i + k);
                   Node nodeJ = n.get(j + k);
                   n.set(i + k,nodeJ);
                   n.set(j + k,nodeI);
                 }
+                // Print this new result.
+                printResult(n);
               }
               semWriteResult.release();
             }catch(InterruptedException e){
 
 
             }
-
-            // Print this new result.
           }
         }
       }
