@@ -22,22 +22,31 @@ public class rang {
 
   // Array containing the nodes, sorted by increasing height.
   static ArrayList<Node> nodesSorted;
+
   //boolean to sync the different thread and to signal if the job is done
   static boolean isDone = false;
+
   //Stack of threads with nothing to work on
   static Stack<BackTrackThread> lookingForWork;
+
   //Stack of threads with nothing to work on for the nOpt Optimisation
   static Stack<NOptimisationThread> nOptLookingForWork;
+
   //Semaphore to control the acess to the thread stacks
   static Semaphore semGiveWork;
+
   //Semaphore in case the main thread finish before all the other one and didn't find a solution
   static Semaphore semWaitEnd;
+
   //for the transmission of the result from the thread to the main thread
   static int[] threadRet;
+
   //Marks the beginning
   static long begin;
+
   //The current most improved list 
   static ArrayList<Node> n;
+
   //Control the access to n
   static Semaphore semWriteResult;
 
@@ -218,6 +227,7 @@ public class rang {
       }
     }
   }
+
   /**
    *initial function for backtracking 
    * @param isInGraph
@@ -242,6 +252,7 @@ public class rang {
     }
     return false;
   }
+
   /**
    * The main backtrack function
    * @param isInGraph
@@ -290,6 +301,7 @@ public class rang {
     }
     return false;
   }
+
   /**
    * BackTrackThread, the thread that does the backtrack!
    * @author Zihui
@@ -342,6 +354,7 @@ public class rang {
         }
       }
     }
+
     /**
      * give work to the thread and unblock it 
      * @param isInGraph
@@ -360,6 +373,7 @@ public class rang {
       stop.release();   	
     }
   }
+
   /**
    * A class with the functionality of keeping track of the depth and evaluating if it is viable to check for connections
    * @author Zihui
@@ -382,6 +396,7 @@ public class rang {
     {
       return (int)currentDepth;
     }
+
     /**
      * Returns if yes or no we should check the connectivity.
      * updates the currentDepth
@@ -404,7 +419,11 @@ public class rang {
   }
 
 
-  // Method to print the current best solution.
+  /**
+   * Method that prints the results with the required format.
+   * 
+   * @param list
+   */
   public static void printResult(List<Node> list) {
     int canSee = validate(list);
     // If -p is not set, only display the number of nodes that can't see.
@@ -418,6 +437,7 @@ public class rang {
       System.out.println("fin");
     }
   }
+
   /**
    * returns the value of the configuration
    * @param nodes
@@ -442,6 +462,7 @@ public class rang {
     }
     return canSee;
   }
+
   /**
    * returns the value of the configuration
    * @param nodes
@@ -466,6 +487,7 @@ public class rang {
     }
     return canSee;
   }
+
   /**
    * Check if the current list of subsets can be constructed into a legal path 
    * in that order.
@@ -484,6 +506,7 @@ public class rang {
     }
     return true;
   }
+
   /**
    * The NOpt thread
    * @author Zihui
@@ -526,6 +549,7 @@ public class rang {
         }
       }
     }
+
     /**
      * Give the parameters for more work and unblock the thread
      * @param nbOpt
@@ -543,6 +567,7 @@ public class rang {
 
     }
   }
+
   /**
    * the base part of nOptimisation. 
    * @param nbOpt the number of links to cut
@@ -554,6 +579,7 @@ public class rang {
     nOptimisation(nbOpt,0,pos,0);
     canSeeBefore=validate(n);
   }
+
   /**
    * the recursive portion of the function
    * @param nbOpt
@@ -562,11 +588,11 @@ public class rang {
    * @param startIndex
    */
   public static void nOptimisation(int nbOpt, int currentPos, int[] pos,int startIndex){
-    //End condition
+    // End condition
     if(currentPos==nbOpt) {
       ArrayList<List<Node>> subsets = new ArrayList<List<Node>>();
       int last =0;
-      //create the subpaths
+      // create the subpaths
       for (int i=0;i<pos.length;i++){
         int next = pos[i]+1;
         subsets.add(n.subList(last, next));
@@ -574,18 +600,18 @@ public class rang {
       }
       subsets.add(n.subList(last,nbNodes));
 
-      //Call the recursive permutation function to test all permutations of the links
+      // Call the recursive permutation function to test all permutations of the links
       int[] positions=new int[subsets.size()];
       nPermutation(subsets,positions,0);
     } else {
-      //iterate through all the nodes
+      // iterate through all the nodes
       for (int i = startIndex; i < nbNodes - (nbOpt-currentPos); i++) {
         pos[currentPos]=i;
         if(nOptLookingForWork.size()==0||nbOpt==2)
-          //recursive call
+          // recursive call
           nOptimisation(nbOpt,currentPos+1,pos,i+1);
         else
-          //give the thread more work to do.
+          // give the thread more work to do.
           try {
             semGiveWork.acquire();
             if(nOptLookingForWork.size()!=0){
@@ -662,8 +688,6 @@ public class rang {
               semWriteResult.release();
             }
           }catch(InterruptedException e){
-
-
           }
           return;
         }
@@ -689,8 +713,10 @@ public class rang {
     }
   }
 
-  // The algorithm used to swap two clusters of consecutive nodes within the
-  // chain. Used for local optimization.
+  /**
+   * The algorithm used to swap two clusters of consecutive nodes within the
+   * chain. Used for local optimization.
+   */
   public static void consecutiveNodesSwap() {
     int canSeeBefore = validate(n);
     int nbPerm = 0;
@@ -714,6 +740,8 @@ public class rang {
           int lastAIndex = i+opt-1;
           int lastBIndex = j+opt-1;
 
+          // Verify if the sub-chains can be linked together by verifying
+          // only the first and last elements (faster).
           if(firstAIndex>0)
             if(!n.get(firstAIndex-1).links.contains(n.get(firstBIndex).id))
               continue;
@@ -738,11 +766,13 @@ public class rang {
           int canSeeAfter = validate(temp);
 
           if (canSeeAfter > canSeeBefore) {
-            try{// This new permutation is valid and is an improvement, keeps it.
+            try {
               semWriteResult.acquire();
               canSeeBefore = validate(n);
               canSeeAfter = validate(temp);
+
               if (canSeeAfter > canSeeBefore) {
+                // This new permutation is valid and is an improvement, keep it.
                 canSeeBefore = canSeeAfter;
                 improvement = true;
                 for (int k = 0; k < opt; k++) {
@@ -755,9 +785,7 @@ public class rang {
                 printResult(n);
               }
               semWriteResult.release();
-            }catch(InterruptedException e){
-
-
+            } catch(InterruptedException e) {
             }
           }
         }
@@ -772,6 +800,7 @@ public class rang {
       }
     }
   }
+
   /**
    * Class that sort the links by order of smallest to tallest target
    * @author Zihui
@@ -789,7 +818,6 @@ public class rang {
 /**
  * Class to sort the nodes by height
  * @author Zihui
- *
  */
 class heightComparator implements Comparator<Node> {
   public int compare(Node a, Node b) {
@@ -800,7 +828,6 @@ class heightComparator implements Comparator<Node> {
 /**
  * A Node which represent a student.
  * @author Zihui
- *
  */
 class Node {
 
